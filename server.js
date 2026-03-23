@@ -1,3 +1,4 @@
+console.log("server file is running");
 const express = require("express");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
@@ -15,8 +16,8 @@ const supabase = createClient(
 );
 
 // ✅ Test route
-app.get("/", (req, res) => {
-  res.send("Server running 🚀");
+app.get("/test", (req, res) => {
+  res.send("test route working 🚀");
 });
 
 // ✅ Contact form API
@@ -42,7 +43,7 @@ app.post("/contact", async (req, res) => {
 });
 
 // Start server
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
