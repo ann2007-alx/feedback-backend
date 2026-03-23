@@ -1,4 +1,5 @@
 console.log("server file is running");
+
 const express = require("express");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
@@ -16,13 +17,21 @@ const supabase = createClient(
 );
 
 // ✅ Test route
-app.get("/test", (req, res) => {
-  res.send("test route working 🚀");
+app.get("/", (req, res) => {
+  res.send("Server running 🚀");
 });
 
-// ✅ Contact form API
-app.post("/contact", async (req, res) => {
+// ✅ Feedback API (FIXED ROUTE)
+app.post("/feedback", async (req, res) => {
   const { name, email, feedback } = req.body;
+
+  // Basic validation
+  if (!name || !email || !feedback) {
+    return res.status(400).json({
+      success: false,
+      message: "All fields are required"
+    });
+  }
 
   try {
     const { error } = await supabase
@@ -31,14 +40,23 @@ app.post("/contact", async (req, res) => {
 
     if (error) {
       console.log(error);
-      return res.json({ success: false, message: "Error saving data" });
+      return res.status(500).json({
+        success: false,
+        message: "Error saving data"
+      });
     }
 
-    res.json({ success: true, message: "Feedback saved successfully!" });
+    res.json({
+      success: true,
+      message: "Feedback saved successfully!"
+    });
 
   } catch (err) {
     console.log(err);
-    res.json({ success: false, message: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
   }
 });
 
