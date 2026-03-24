@@ -1,8 +1,6 @@
-console.log("server file is running");
-
 const express = require("express");
 const cors = require("cors");
-const { createClient } = require("@supabase/supabase-js");
+const mongoose = require("mongoose");
 
 const app = express();
 
@@ -10,41 +8,47 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Supabase connection
-const supabase = createClient(
-  "https://lzuzuvseqonsettitnyo.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6dXp1dnNlcW9uc2V0dGl0bnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTU0MTAsImV4cCI6MjA4OTEzMTQxMH0.MRpz9Xv5vaqdEfjWqYa6rfnG0kwMX_5-1_sSB4vV1bc"
-);
+// 🔗 MongoDB Connection
+mongoose.connect("mongodb+srv://yy2419524_db_user:Saniya_143@cluster0.bxo7v4p.mongodb.net/portfolioDB?retryWrites=true&w=majority")
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch(err => console.log("❌ MongoDB Error:", err));
 
-// ✅ Test route
+// 📦 Schema
+const feedbackSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  feedback: String
+});
+
+// 📁 Model
+const Feedback = mongoose.model("Feedback", feedbackSchema);
+
+// ✅ Root route (for testing)
 app.get("/", (req, res) => {
   res.send("Server running 🚀");
 });
 
-// ✅ Feedback API (FIXED ROUTE)
+// ✅ Feedback API route
 app.post("/feedback", async (req, res) => {
-  const { name, email, feedback } = req.body;
-
-  // Basic validation
-  if (!name || !email || !feedback) {
-    return res.status(400).json({
-      success: false,
-      message: "All fields are required"
-    });
-  }
+  console.log("🔥 API HIT");
+  console.log("📩 Received:", req.body);
 
   try {
-    const { error } = await supabase
-      .from("feedback")
-      .insert([{ name, email, feedback }]);
+    const { name, email, feedback } = req.body;
 
-    if (error) {
-      console.log(error);
-      return res.status(500).json({
+    // Validation
+    if (!name || !email || !feedback) {
+      return res.status(400).json({
         success: false,
-        message: "Error saving data"
+        message: "All fields are required"
       });
     }
+
+    // Save to MongoDB
+    const newFeedback = new Feedback({ name, email, feedback });
+    await newFeedback.save();
+
+    console.log("✅ Saved to MongoDB");
 
     res.json({
       success: true,
@@ -52,7 +56,8 @@ app.post("/feedback", async (req, res) => {
     });
 
   } catch (err) {
-    console.log(err);
+    console.log("❌ Server Error:", err);
+
     res.status(500).json({
       success: false,
       message: "Server error"
@@ -64,5 +69,5 @@ app.post("/feedback", async (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
